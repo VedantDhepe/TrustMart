@@ -1,12 +1,23 @@
-const {Pool} = require('pg');
+// const {Pool} = require('pg');
+// const pool = new Pool({
+//     host : process.env.DB_HOST,
+//     user : process.env.DB_USER,
+//     port : process.env.DB_PORT,
+//     password : process.env.DB_PASSWORD,
+//     database : process.env.DB_DATABASE,
+// })
+// pool.connect().then(()=>console.log("DB connected Successfully"))
+// .catch((err)=>console.log("Failed to connect DB", err.message));
+
+// module.exports = pool;
+
+const { Pool } = require('pg');
 const pool = new Pool({
-    host : process.env.DB_HOST,
-    user : process.env.DB_USER,
-    port : process.env.DB_PORT,
-    password : process.env.DB_PASSWORD,
-    database : process.env.DB_DATABASE,
-})
-pool.connect().then(()=>console.log("DB connected Successfully"))
-.catch((err)=>console.log("Failed to connect DB", err.message));
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // Required for most hosted PG services
+});
+pool.connect()
+  .then(() => console.log("DB connected Successfully"))
+  .catch((err) => console.log("Failed to connect DB", err.message));
 
 module.exports = pool;
