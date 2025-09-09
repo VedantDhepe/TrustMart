@@ -1,0 +1,28 @@
+ ___________________________________________________________________________________________________________________________________________________
+| Method | Path                            | Description                                                    | Auth Required | Who Can Use           |
+|________|_________________________________|________________________________________________________________|_______________|_______________________|
+| POST   | /api/auth/register              | Register new user (normal/store_owner only)                    | No            | Anyone                |
+| POST   | /api/auth/login                 | Log in (get session)                                           | No            | Anyone                |
+| POST   | /api/auth/logout                | Log out                                                        | Yes           | Any logged in         |
+| GET    | /api/auth/me                    | Get current user's info                                        | Yes           | Any logged in         |
+|________|_________________________________|________________________________________________________________|_______________|_______________________|
+| GET    | /api/users                      | List/filter/sort all users                                     | Yes           | Admin                 |
+| POST   | /api/users/register             | Admin creates user (any role)                                  | Yes           | Admin                 |
+| PUT    | /api/users/:id                  | Admin updates any user                                         | Yes           | Admin                 |
+| DELETE | /api/users/:id                  | Admin deletes any user                                         | Yes           | Admin                 |
+| POST   | /api/users/change-password      | User changes own password                                      | Yes           | Any logged in         |
+|________|_________________________________|________________________________________________________________|_______________|_______________________|
+| GET    | /api/stores                     | List/search all stores (with avg & user's rating)              | Yes           | Any logged in         |
+| POST   | /api/stores                     | Create store (admin: any, owner: self)                         | Yes           | Admin, Store Owner    |
+| GET    | /api/stores/:id                 | Get details for a single store (optional/future)               | Yes           | Any logged in         |
+| PUT    | /api/stores/:id                 | Update store (admin: any, owner: own only)                     | Yes           | Admin, Store Owner    |
+| DELETE | /api/stores/:id                 | Delete store (admin: any, owner: own only)                     | Yes           | Admin, Store Owner    |
+| GET    | /api/stores/all                 | Admin lists/filters/sorts all stores                           | Yes           | Admin                 |
+|________|_________________________________|________________________________________________________________|_______________|_______________________|
+| POST   | /api/ratings                    | Submit or modify rating for a store                            | Yes           | Normal*, Store Owner* |
+| GET    | /api/ratings/owner-dashboard    | Dashboard: users who rated and avg per store (owner role)      | Yes           | Store Owner           |
+|________|_________________________________|________________________________________________________________|_______________|_______________________|
+| GET    | /api/dashboard/totals           | Show total users, stores, and ratings (dashboard stats)        | Yes           | Admin                 |
+|________|_________________________________|________________________________________________________________|_______________|_______________________|
+| GET    | /                               | API health check endpoint                                      | No            | Anyone                |
+|________|_________________________________|________________________________________________________________|_______________|_______________________|
