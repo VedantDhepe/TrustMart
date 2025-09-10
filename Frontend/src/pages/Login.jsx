@@ -13,7 +13,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    const res = await fetch(`${apiUrl}/api/auth/login`, {
+    const res = await fetch("http://localhost:3000/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include", // important for session cookies
@@ -21,20 +21,29 @@ export default function Login() {
     });
 
     if (res.ok) {
-      const userData = await fetch(`${apiUrl}/api/auth/me`, { credentials: "include" })
+      const userData = await fetch("http://localhost:3000/api/auth/me", { credentials: "include" })
         .then(r => r.json());
-
-      setUser(userData.user);
+        console.log(userData.role);
+        console.log(userData.error )
+      setUser(userData);
       // Redirect based on role
-      if (userData.user.role === "admin"){
-        toast.success(`Welcome back ${userData.user.name}`)
+      if ( userData.role === "admin"){
+        // toast.success(`Welcome back ${userData.name}`)
         navigate("/dashboard")
       }
-      else if (userData.user.role === "normal") navigate("/stores");
-      else if (userData.user.role === "store_owner") navigate("/owner-dashboard");
-      else navigate("/");
+      else if (userData.role === "normal"){
+        toast.success(`Welcome back ${userData.name}`);
+        navigate("/stores");
+      } 
+      else if (userData.role === "store_owner"){
+        toast.success(`Welcome back ${userData.name}`)
+        navigate("/owner-dashboard");
+      } 
+      else {
+        navigate("/login");}
     } else {
       toast.error("Invalid Credentials");
+      // alert("Invalid credentials");
     }
   };
 
