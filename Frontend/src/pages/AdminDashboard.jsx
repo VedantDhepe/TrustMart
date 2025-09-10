@@ -13,6 +13,12 @@ export default function AdminDashboard() {
   const [userSearch, setUserSearch] = useState("");
   const [userSortBy, setUserSortBy] = useState("");
   const [userOrder, setUserOrder] = useState("asc");
+  const [creatingUser, setCreatingUser] = useState(false);
+const [creatingStore, setCreatingStore] = useState(false);
+const [usersApplying, setUsersApplying] = useState(false);
+const [storesApplying, setStoresApplying] = useState(false);
+const [loadingUserId, setLoadingUserId] = useState(null);    // For per-user Delete
+const [loadingStoreId, setLoadingStoreId] = useState(null);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -38,13 +44,14 @@ export default function AdminDashboard() {
 
   const createUser = async (e) => {
     e.preventDefault();
-   
+   setCreatingUser(true);
     const res = await fetch(`${apiUrl}/api/users/create`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify(newUser),
     });
+    setCreatingUser(false);
     if (res.ok) { 
       toast.success("User created Successfully!");
       setNewUser({ name: "", email: "", address: "", password: "", role: "normal" });
@@ -61,12 +68,14 @@ export default function AdminDashboard() {
 
   const createStore = async (e) => {
     e.preventDefault();
+    setCreatingStore(true);
     const res = await fetch(`${apiUrl}/api/stores`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify(newStore),
     });
+    setCreatingStore(false);
     if (res.ok) {
       toast.success("Store created!");
       setNewStore({ name: "", email: "", address: "", owner_id: null });
@@ -102,40 +111,44 @@ export default function AdminDashboard() {
   }, []);
 
 // Search filter Functionality to display users
-  const fetchUsers = () => {
+  const fetchUsers = async () => {
   const params = new URLSearchParams();
   if (userSearch) params.append("q", userSearch);
   if (userSortBy) params.append("sortBy", userSortBy);
   if (userOrder) params.append("order", userOrder);
-
-  fetch(`${apiUrl}/api/users?${params.toString()}`, {
+  setUsersApplying(true);
+  await fetch(`${apiUrl}/api/users?${params.toString()}`, {
     credentials: "include",
   })
     .then((res) => res.json())
     .then((data) => setUsers(data.users));
+    setUsersApplying(false);
 };
 
 // Search filter Functionality to display stores
-  const fetchStores = () => {
+  const fetchStores = async () => {
       const params = new URLSearchParams();
       if (search) params.append("q", search);
       if (sortBy) params.append("sortBy", sortBy);
       if (order) params.append("order", order);
-
-      fetch(`${apiUrl}/api/stores/all?${params.toString()}`, {
+       setStoresApplying(true);
+      await fetch(`${apiUrl}/api/stores/all?${params.toString()}`, {
         credentials: "include",
       })
         .then((res) => res.json())
         .then((data) => {
           setStores(data.stores)});
+      setStoresApplying(false);
     };
 
     const deleteUser =  async (e) => {
                       if (window.confirm("Delete this user?")) {
+                        setLoadingUserId(e);
                         const res = await fetch(`${apiUrl}/api/users/${e}`, {
                           method: "DELETE",
                           credentials: "include",
                         });
+                        setLoadingUserId(null);
                         if(!res.ok){
                           toast.error("OOPs, there is a relation of this user with a store, hence can't delete for now. Please Try with a normal user. I (developer) will handle this issue later", {autoClose : 3000})
                         }
@@ -145,7 +158,25 @@ export default function AdminDashboard() {
                             fetchUsers();
                         }
                       }
-                    }
+    }
+
+    const deleteStore = async (id) => {
+  if (window.confirm("Delete this store?")) {
+    setLoadingStoreId(id);
+    const res = await fetch(`${apiUrl}/api/stores/${id}`, { method: "DELETE", credentials: "include" });
+    setLoadingStoreId(null);
+    if (res.ok) {
+      toast.success("Store Deleted");
+      fetchStores();
+    } else {
+      toast.error("OOPs, ...", { autoClose: 3000 });
+    }
+  }
+};
+
+
+
+                    
   return (
     <div className="min-h-screen bg-gradient-to-tr from-blue-100 via-pink-100 to-purple-200 pt-10 px-2 sm:px-4 lg:px-14">
       <h2 className="text-3xl font-bold text-center text-blue-700 mb-8 tracking-wide drop-shadow-lg">
@@ -238,9 +269,37 @@ export default function AdminDashboard() {
             </select>
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-400 via-pink-400 to-purple-400 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
+              disabled={creatingUser}
+              className={`w-full py-3 rounded-xl bg-gradient-to-r from-blue-400 via-pink-400 to-purple-400 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all flex items-center justify-center ${
+                creatingUser ? "opacity-60 cursor-not-allowed" : ""
+              }`}
             >
-              Create User
+              {creatingUser ? (
+                <>
+                  <svg
+                    className="animate-spin mr-2 h-5 w-5 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Creating...
+                </>
+              ) : (
+                "Create User"
+              )}
             </button>
           </form>
         </div>
@@ -296,9 +355,37 @@ export default function AdminDashboard() {
             </select>
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-400 via-blue-400 to-purple-500 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:from-pink-700 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-pink-300 transition-all"
+              disabled={creatingStore}
+              className={`w-full py-3 rounded-xl bg-gradient-to-r from-pink-400 via-blue-400 to-purple-500 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:from-pink-700 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-pink-300 transition-all flex items-center justify-center ${
+                creatingStore ? "opacity-60 cursor-not-allowed" : ""
+              }`}
             >
-              Create Store
+              {creatingStore ? (
+                <>
+                  <svg
+                    className="animate-spin mr-2 h-5 w-5 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Creating...
+                </>
+              ) : (
+                "Create Store"
+              )}
             </button>
           </form>
         </div>
@@ -330,9 +417,37 @@ export default function AdminDashboard() {
         </select>
         <button
           onClick={fetchUsers}
-          className="py-2 px-6 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow hover:from-blue-700 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+          disabled={usersApplying}
+          className={`py-2 px-6 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow hover:from-blue-700 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition flex items-center justify-center ${
+            usersApplying ? "opacity-60 cursor-not-allowed" : ""
+          }`}
         >
-          Apply
+          {usersApplying ? (
+            <>
+              <svg
+                className="animate-spin mr-2 h-5 w-5 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              Applying...
+            </>
+          ) : (
+            "Apply"
+          )}
         </button>
       </div>
 
@@ -361,9 +476,36 @@ export default function AdminDashboard() {
                     <td className="py-2 px-4">
                       <button
                         onClick={() => deleteUser(u.id)}
-                        className="py-1 px-4 rounded-xl bg-gradient-to-r from-red-400 to-red-600 text-white font-semibold shadow hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-300 transition"
+                        disabled={loadingUserId === u.id}
+                        className={`py-1 px-4 rounded-xl bg-gradient-to-r from-red-400 to-red-600 text-white font-semibold shadow hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-300 transition flex items-center justify-center ${
+                          loadingUserId === u.id
+                            ? "opacity-60 cursor-not-allowed"
+                            : ""
+                        }`}
                       >
-                        Delete
+                        {loadingUserId === u.id ? (
+                          <svg
+                            className="animate-spin h-5 w-5 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 ..."
+                            />
+                          </svg>
+                        ) : (
+                          "Delete"
+                        )}
                       </button>
                     </td>
                   </tr>
@@ -399,9 +541,37 @@ export default function AdminDashboard() {
         </select>
         <button
           onClick={fetchStores}
-          className="py-2 px-6 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold shadow hover:from-pink-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-pink-300 transition"
+          disabled={storesApplying}
+          className={`py-2 px-6 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow hover:from-blue-700 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition flex items-center justify-center ${
+            usersApplying ? "opacity-60 cursor-not-allowed" : ""
+          }`}
         >
-          Apply
+          {storesApplying ? (
+            <>
+              <svg
+                className="animate-spin mr-2 h-5 w-5 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              Applying...
+            </>
+          ) : (
+            "Apply"
+          )}
         </button>
       </div>
 
@@ -432,24 +602,55 @@ export default function AdminDashboard() {
                     </td>
                     <td className="py-2 px-4">
                       <button
-                        onClick={async () => {
-                          if (window.confirm("Delete this store?")) {
-                            const res = await fetch(
-                              `${apiUrl}/api/stores/${s.id}`,
-                              { method: "DELETE", credentials: "include" }
-                            );
-                            if(res.ok){
-                              toast.success("Store Deleted");
-                              fetchStores();
-                            } else{
-                              toast.error("OOPs, there is a relation of this user with a store, hence can't delete for now. Please Try with a normal user. I (developer) will handle this issue later", {autoClose : 3000})
-                            }
-                                
-                          }
-                        }}
-                        className="py-1 px-4 rounded-xl bg-gradient-to-r from-red-400 to-red-600 text-white font-semibold shadow hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-300 transition"
+                        // onClick={async () => {
+                        //   if (window.confirm("Delete this store?")) {
+                        //     const res = await fetch(
+                        //       `${apiUrl}/api/stores/${s.id}`,
+                        //       { method: "DELETE", credentials: "include" }
+                        //     );
+                        //     if (res.ok) {
+                        //       toast.success("Store Deleted");
+                        //       fetchStores();
+                        //     } else {
+                        //       toast.error(
+                        //         "OOPs, there is a relation of this user with a store, hence can't delete for now. Please Try with a normal user. I (developer) will handle this issue later",
+                        //         { autoClose: 3000 }
+                        //       );
+                        //     }
+                        //   }
+                        // }
+                        // }
+                        onClick={() => deleteStore(s.id)}
+                        disabled={loadingStoreId === s.id}
+                        className={`py-1 px-4 rounded-xl bg-gradient-to-r from-red-400 to-red-600 text-white font-semibold shadow hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-300 transition flex items-center justify-center ${
+                          loadingStoreId === s.id
+                            ? "opacity-60 cursor-not-allowed"
+                            : ""
+                        }`}
                       >
-                        Delete
+                        {loadingStoreId === s.id ? (
+                          <svg
+                            className="animate-spin h-5 w-5 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373..."
+                            />
+                          </svg>
+                        ) : (
+                          "Delete"
+                        )}
                       </button>
                     </td>
                   </tr>

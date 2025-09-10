@@ -23,6 +23,10 @@ app.use(cors({
   credentials: true,
 }));
 
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1); // Trust first proxy (Render, etc.)
+}
+
 // ====================
 // Database Connection
 // ====================
@@ -38,14 +42,16 @@ require('./config/passport');
 // Session Middleware
 // ====================
 // Required for persistent login sessions
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || 'supersecretkey',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false }, // Use true with HTTPS in production!
-  })
-);
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'supersecretkey',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',        // true if production (HTTPS)
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // 'none' for cross-site cookies in prod, lax in dev
+    // You can also add httpOnly: true for extra security if desired
+  }
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
