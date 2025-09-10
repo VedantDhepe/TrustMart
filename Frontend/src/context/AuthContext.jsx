@@ -12,8 +12,8 @@ export const AuthProvider = ({ children }) => {
     fetch(`${apiUrl}/api/auth/me`,
        { credentials: "include" })
       .then(res => res.ok ? res.json() : null)
-      .then(data => setUser(data.user))
-      .catch((err) => setUser(null));
+      .then(data => setUser(data))
+      .catch(() => setUser(null));
   }, []);
 
   return (
