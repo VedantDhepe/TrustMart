@@ -48,7 +48,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',        // true if production (HTTPS)
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // 'none' for cross-site cookies in prod, lax in dev
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-site cookies in prod, lax in dev
+    maxAge: 1000 * 60 * 60 * 24, // 1 day
     // You can also add httpOnly: true for extra security if desired
   }
 }));
