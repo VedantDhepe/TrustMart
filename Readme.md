@@ -53,10 +53,49 @@ Live Demo: [https://trustmart.onrender.com](https://trustmart.onrender.com)
 
 ## Screenshots
 
-_Add screenshots:_
+_Home Page:_
 
-_Path/to/images can be customized as per files in your project._
+![Home Page](Screenshots/screenshot.png)
+##
+_Login Page:_
 
+![Login Page](Screenshots/login.png)
+
+##
+
+_Signup Page:_
+
+![Signup](Screenshots/signup.png)
+
+##
+
+_Admin Page:_
+
+![Admin](Screenshots/admin.png) ![Admin2](Screenshots/admin2.png)
+
+##
+
+_Store Owner Page:_
+
+![Owner](Screenshots/owner.png) 
+
+##
+
+_Normal User:_
+
+![NormalUser](Screenshots/normal.png)
+
+##
+
+_Change Password:_
+
+![ChangePassword](Screenshots/changepassword.png)
+
+##
+
+_PageNotFound:_
+
+![pagenotfound](Screenshots/pagenotfound.png)
 ---
 
 ## Getting Started
@@ -169,3 +208,4 @@ Open-source for educational and development use.
 ---
 
 *This app uses an MVC file structure for backend maintainability and separation of concerns.*
+ 
